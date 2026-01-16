@@ -9,7 +9,6 @@ for i in range(R):      #生成初始迷宮
         p[i].append(random.choice([0,1]))
         if i>0 and j>0 :
             if p[i][j]==0 and p[i-1][j]==0 and p[i][j-1]==0 and p[i-1][j-1]==0 :
-                #turn1=random.randrange(1,5)
                 match random.randrange(1,5) :
                     case 1 :
                         p[i][j]=1
@@ -23,9 +22,13 @@ rs=random.randrange(0,R)        #生成開始點s及結束點e
 cs=random.randrange(0,C)
 re=random.randrange(0,R)
 ce=random.randrange(0,C)
-while rs==re and cs==ce:
+k=0
+while abs(rs-re)+abs(cs-ce)<(R+C)/2 :
     re=random.randrange(0,R)
     ce=random.randrange(0,C)
+    k+=1
+    if k>100:
+        break
 p[rs][cs]=p[re][ce]=0
 r,c=rs,cs
 def count(a,b,item):        #找出item方位
@@ -98,5 +101,9 @@ while r!=re or c!=ce :
     way.insert(i,[r,c])
 p[rs][cs]='s'
 p[re][ce]='e'
+for i in range(R):
+    for j in range(C):
+        if p[i][j]==2:
+            p[i][j]=0
 for row in p :
     print(*row)
