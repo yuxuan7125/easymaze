@@ -41,27 +41,29 @@ def count(a,b,item):        #找出item方位
     return lis
 def countbomb(a,b):        #找出炸開路徑方位
     lis=list()
-    if a-1>=0 and p[a-1][b]==1 and len(count(a-1,b,2))<=1:
+    if a-1>=0 and p[a-1][b]==1 and len(count(a-1,b,2))==1:
         lis.append(1)
-    if b-1>=0 and p[a][b-1]==1 and len(count(a,b-1,2))<=1:
+    if b-1>=0 and p[a][b-1]==1 and len(count(a,b-1,2))==1:
         lis.append(2)
-    if a+1<R and p[a+1][b]==1 and len(count(a+1,b,2))<=1:
+    if a+1<R and p[a+1][b]==1 and len(count(a+1,b,2))==1:
         lis.append(3)
-    if b+1<C and p[a][b+1]==1 and len(count(a,b+1,2))<=1:
+    if b+1<C and p[a][b+1]==1 and len(count(a,b+1,2))==1:
         lis.append(4)
     return lis
 way=[[r,c]]
 i=back=0
-p[re][ce]=3
-while r!=re or c!=ce :
-    p[r][c]=2
+def add_d():
     if len(way[i])==2:
         way[i].append(count(way[i][0],way[i][1],0))
+while r!=re or c!=ce :
+    p[r][c]=2
+    add_d()
     if len(way[i][2])==0:
         while len(way[i][2])==0:
             if i==back:         #開路
                 bomb=random.randrange(0,len(way))
                 while len(countbomb(way[bomb][0],way[bomb][1]))==0:
+                    del way[bomb]
                     bomb=random.randrange(0,len(way))
                 match random.choice(countbomb(way[bomb][0],way[bomb][1])):
                     case 1:
@@ -76,6 +78,7 @@ while r!=re or c!=ce :
                 way.append([r,c])
                 i=len(way)-1
                 back=i
+                add_d()
                 break
             i-=1
             r,c=way[i][0],way[i][1]
@@ -93,5 +96,7 @@ while r!=re or c!=ce :
             c+=1
     i+=1
     way.insert(i,[r,c])
+p[rs][cs]='s'
+p[re][ce]='e'
 for row in p :
     print(*row)
