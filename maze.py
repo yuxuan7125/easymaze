@@ -135,19 +135,23 @@ answer[rs][cs]=answer[re][ce]=0
 r,c=rs,cs
 way=[[r,c]]
 i=0
+shortest=R*C
 
-while r!=re or c!=ce :          #找到迷宮的解答
+while True :          #找出迷宮(最短)(X)的解答
     answer[r][c]='v'
     add_d(answer)
     if len(way[i][2])==0:
         while len(way[i][2])==0:
             answer[r][c]=0
+            way.pop()
             i-=1
+            if i<0:
+                break
             r,c=way[i][0],way[i][1]
+        if i<0:
+            break
         continue
-    d=random.choice(way[i][2])
-    way[i][2].remove(d)
-    match d:
+    match way[i][2].pop():
         case 1:
             r-=1
         case 2:
@@ -156,6 +160,10 @@ while r!=re or c!=ce :          #找到迷宮的解答
             r+=1
         case 4:
             c+=1
+    if r==re and c==ce:
+        if len(way)<shortest:
+            shortest=len(way)
+        continue
     i+=1
     way.insert(i,[r,c])
 
@@ -164,3 +172,4 @@ answer[re][ce]='e'
 print("answer:")
 for row in answer :
     print(*row)
+print(shortest)
