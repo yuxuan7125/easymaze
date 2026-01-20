@@ -80,7 +80,7 @@ def make_maze():
             allrc.append([a,b])
     mark=2
 
-    for nothing in range(R*C):
+    for nothing in range(R*C):          #形成一個真正有路線的迷宮
         r,c=random.choice(allrc)
         allrc.remove([r,c])
         if p[r][c]==0:
@@ -171,9 +171,6 @@ def make_maze():
     while True :          #找出迷宮最短和最長的解答
         p[r][c]=2
         add_d(r,c,p,way,0,i)
-        for row in p:
-            print(*row)
-        print()
         if len(way[i][2])==0:
             while len(way[i][2])==0:
                 p[r][c]=0
@@ -217,7 +214,7 @@ def make_maze():
     return shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce
 
 shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce=make_maze()
-while shortest<(abs(rs-re)+abs(cs-ce))*1:
+while shortest<(abs(rs-re)+abs(cs-ce))*1:           #避免迷宮太容易
     shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce=make_maze()
 print("maze:")
 for row in maze:
