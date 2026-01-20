@@ -3,8 +3,6 @@ import copy
 
 R=int(input())      #迷宮大小
 C=int(input())
-maze=list()
-answer=list()
 
 def make_maze():
     p=list()
@@ -142,12 +140,11 @@ def make_maze():
             if p[x][y]>1:
                 p[x][y]=0
 
-    #print("maze:")
     for i in range(R):      #優化迷宮
         for j in range(C):
             if p[i][j]=='v':
                 p[i][j]=0
-            '''if i>0 and j>0 and p[i][j]==0 and p[i-1][j]==0 and p[i][j-1]==0 and p[i-1][j-1]==0 :
+            if i>0 and j>0 and p[i][j]==0 and p[i-1][j]==0 and p[i][j-1]==0 and p[i-1][j-1]==0 :
                 turn1=list()
                 if len(count(i,j,0,p))==2:
                     turn1.append([i,j])
@@ -159,8 +156,7 @@ def make_maze():
                     turn1.append([i-1,j-1])
                 if len(turn1)>=1:
                     x=random.randrange(0,len(turn1))
-                    p[turn1[x][0]][turn1[x][1]]=1'''
-        #print(*p[i])
+                    p[turn1[x][0]][turn1[x][1]]=1
 
     maze=copy.deepcopy(p)
     answer=copy.deepcopy(p)
@@ -169,15 +165,19 @@ def make_maze():
     way=[[r,c]]
     i=0
     shortest=R*C
-    shortest_way=list()
-
-    while True :          #找出迷宮最短的解答
-        answer[r][c]=2
-        add_d(r,c,answer,way,0,i)
+    longest=0
+    shortest_way=longest_way=list()
+    
+    while True :          #找出迷宮最短和最長的解答
+        p[r][c]=2
+        add_d(r,c,p,way,0,i)
+        for row in p:
+            print(*row)
+        print()
         if len(way[i][2])==0:
             while len(way[i][2])==0:
-                answer[r][c]=0
-                way.pop()
+                p[r][c]=0
+                del way[-1]
                 i-=1
                 if i<0:
                     break
@@ -198,25 +198,35 @@ def make_maze():
             if len(way)<shortest:
                 shortest=len(way)
                 shortest_way=copy.deepcopy(way)
+            if len(way)>longest:
+                longest=len(way)
+                longest_way=copy.deepcopy(way)
+            r,c=way[i][0],way[i][1]
             continue
         i+=1
         way.insert(i,[r,c])
 
-    answer[rs][cs]='s'
-    answer[re][ce]='e'
-    #print("answer:")
+    p[rs][cs]='s'
+    p[re][ce]='e'
+    answer_shortest=copy.deepcopy(p)
+    answer_longest=copy.deepcopy(p)
     for rc in shortest_way[1:]:
-        answer[rc[0]][rc[1]]='v'
-    #for row in answer :
-    #    print(*row)
-    return shortest,maze,answer
+        answer_shortest[rc[0]][rc[1]]='v'
+    for rc in longest_way[1:]:
+        answer_longest[rc[0]][rc[1]]='v'
+    return shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce
 
-path_length,maze,answer=make_maze()
-while path_length<(R+C)*1.5:
-    path_length,maze,answer=make_maze()
+shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce=make_maze()
+while shortest<(abs(rs-re)+abs(cs-ce))*1:
+    shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce=make_maze()
 print("maze:")
 for row in maze:
     print(*row)
-print("answer:")
-for row in answer:
+print("answer(shortest):")
+for row in answer_shortest:
     print(*row)
+print(shortest)
+print("answer(longest):")
+for row in answer_longest:
+    print(*row)
+print(longest)
