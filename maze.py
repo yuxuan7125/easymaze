@@ -159,14 +159,11 @@ def make_maze():
                     p[turn1[x][0]][turn1[x][1]]=1
 
     maze=copy.deepcopy(p)
-    answer=copy.deepcopy(p)
-    answer[rs][cs]=answer[re][ce]=0
     r,c=rs,cs
     way=[[r,c]]
     i=0
     shortest=R*C
-    longest=0
-    shortest_way=longest_way=list()
+    shortest_way=list()
     
     while True :          #找出迷宮最短和最長的解答
         p[r][c]=2
@@ -195,27 +192,21 @@ def make_maze():
             if len(way)<shortest:
                 shortest=len(way)
                 shortest_way=copy.deepcopy(way)
-            if len(way)>longest:
-                longest=len(way)
-                longest_way=copy.deepcopy(way)
             r,c=way[i][0],way[i][1]
             continue
         i+=1
         way.insert(i,[r,c])
 
-    p[rs][cs]='s'
-    p[re][ce]='e'
-    answer_shortest=copy.deepcopy(p)
-    answer_longest=copy.deepcopy(p)
+    maze[rs][cs]='s'
+    maze[re][ce]='e'
+    answer_shortest=copy.deepcopy(maze)
     for rc in shortest_way[1:]:
         answer_shortest[rc[0]][rc[1]]='v'
-    for rc in longest_way[1:]:
-        answer_longest[rc[0]][rc[1]]='v'
-    return shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce
+    return shortest,answer_shortest,maze,rs,re,cs,ce
 
-shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce=make_maze()
+shortest,answer_shortest,maze,rs,re,cs,ce=make_maze()
 while shortest<(abs(rs-re)+abs(cs-ce))*1:           #避免迷宮太容易
-    shortest,answer_shortest,longest,answer_longest,maze,rs,re,cs,ce=make_maze()
+    shortest,answer_shortest,maze,rs,re,cs,ce=make_maze()
 print("maze:")
 for row in maze:
     print(*row)
@@ -223,7 +214,3 @@ print("answer(shortest):")
 for row in answer_shortest:
     print(*row)
 print(shortest)
-print("answer(longest):")
-for row in answer_longest:
-    print(*row)
-print(longest)
