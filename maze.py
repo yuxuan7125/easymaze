@@ -5,21 +5,21 @@ R=int(input())      #迷宮大小
 C=int(input())
 
 def make_maze():
-    p=list()
+    maze=list()
     for i in range(R):      #生成初始迷宮
-        p.append(list())
+        maze.append(list())
         for j in range(C):
-            p[i].append(random.choice([0,1]))
-            if i>0 and j>0 and p[i][j]==0 and p[i-1][j]==0 and p[i][j-1]==0 and p[i-1][j-1]==0 :
+            maze[i].append(random.choice([0,1]))
+            if i>0 and j>0 and maze[i][j]==0 and maze[i-1][j]==0 and maze[i][j-1]==0 and maze[i-1][j-1]==0 :
                 match random.randrange(1,5) :
                     case 1 :
-                        p[i][j]=1
+                        maze[i][j]=1
                     case 2 :
-                        p[i-1][j]=1
+                        maze[i-1][j]=1
                     case 3 :
-                        p[i][j-1]=1
+                        maze[i][j-1]=1
                     case 4 :
-                        p[i-1][j-1]=1
+                        maze[i-1][j-1]=1
 
     '''rs=random.randrange(0,R)        #生成隨機開始點s及結束點e
     cs=random.randrange(0,C)
@@ -34,7 +34,7 @@ def make_maze():
             break'''
     rs=cs=0
     re,ce=R-1,C-1
-    p[rs][cs]=p[re][ce]=0
+    maze[rs][cs]=maze[re][ce]=0
 
     def count(a,b,item,maze):        #找出item方位
         lis=list()
@@ -50,13 +50,13 @@ def make_maze():
 
     def countbomb(a,b,item,maze):        #找出炸開路徑方位
         lis=list()
-        if a-1>=0 and p[a-1][b]==1 and len(count(a-1,b,item,maze))==1:
+        if a-1>=0 and maze[a-1][b]==1 and len(count(a-1,b,item,maze))==1:
             lis.append(1)
-        if b-1>=0 and p[a][b-1]==1 and len(count(a,b-1,item,maze))==1:
+        if b-1>=0 and maze[a][b-1]==1 and len(count(a,b-1,item,maze))==1:
             lis.append(2)
-        if a+1<R and p[a+1][b]==1 and len(count(a+1,b,item,maze))==1:
+        if a+1<R and maze[a+1][b]==1 and len(count(a+1,b,item,maze))==1:
             lis.append(3)
-        if b+1<C and p[a][b+1]==1 and len(count(a,b+1,item,maze))==1:
+        if b+1<C and maze[a][b+1]==1 and len(count(a,b+1,item,maze))==1:
             lis.append(4)
         return lis
 
@@ -83,24 +83,24 @@ def make_maze():
     for nothing in range(R*C):          #形成一個真正有路線的迷宮
         r,c=random.choice(allrc)
         allrc.remove([r,c])
-        if p[r][c]==0:
+        if maze[r][c]==0:
             way=[[r,c]]
             i=back=0
             while True:
-                p[r][c]=mark
-                add_d(r,c,p,way,mark-1,i)
+                maze[r][c]=mark
+                add_d(r,c,maze,way,mark-1,i)
                 if len(way[i][2])==0:
                     while len(way[i][2])==0:
                         if i==back:
                             bomb=random.randrange(0,len(way))
-                            while len(countbomb(way[bomb][0],way[bomb][1],mark,p))==0:
+                            while len(countbomb(way[bomb][0],way[bomb][1],mark,maze))==0:
                                 del way[bomb]
                                 if len(way)==0:
                                     break
                                 bomb=random.randrange(0,len(way))
                             if len(way)==0:
                                 break
-                            match random.choice(countbomb(way[bomb][0],way[bomb][1],mark,p)):
+                            match random.choice(countbomb(way[bomb][0],way[bomb][1],mark,maze)):
                                 case 1:
                                     r,c=way[bomb][0]-1,way[bomb][1]
                                 case 2:
@@ -109,11 +109,11 @@ def make_maze():
                                     r,c=way[bomb][0]+1,way[bomb][1]
                                 case 4:
                                     r,c=way[bomb][0],way[bomb][1]+1
-                            p[r][c]=0
+                            maze[r][c]=0
                             way.append([r,c])
                             i=len(way)-1
                             back=i
-                            add_d(r,c,p,way,mark-1,i)
+                            add_d(r,c,maze,way,mark-1,i)
                             break
                         i-=1
                         r,c=way[i][0],way[i][1]
@@ -137,28 +137,28 @@ def make_maze():
 
     for x in range(R):
         for y in range(C):
-            if p[x][y]>1:
-                p[x][y]=0
+            if maze[x][y]>1:
+                maze[x][y]=0
 
     for i in range(R):      #優化迷宮
         for j in range(C):
-            if p[i][j]=='v':
-                p[i][j]=0
-            if i>0 and j>0 and p[i][j]==0 and p[i-1][j]==0 and p[i][j-1]==0 and p[i-1][j-1]==0 :
+            if maze[i][j]=='v':
+                maze[i][j]=0
+            if i>0 and j>0 and maze[i][j]==0 and maze[i-1][j]==0 and maze[i][j-1]==0 and maze[i-1][j-1]==0 :
                 turn1=list()
-                if len(count(i,j,0,p))==2:
+                if len(count(i,j,0,maze))==2:
                     turn1.append([i,j])
-                if len(count(i-1,j,0,p))==2:
+                if len(count(i-1,j,0,maze))==2:
                     turn1.append([i-1,j])
-                if len(count(i,j-1,0,p))==2:
+                if len(count(i,j-1,0,maze))==2:
                     turn1.append([i,j-1])
-                if len(count(i-1,j-1,0,p))==2:
+                if len(count(i-1,j-1,0,maze))==2:
                     turn1.append([i-1,j-1])
                 if len(turn1)>=1:
                     x=random.randrange(0,len(turn1))
-                    p[turn1[x][0]][turn1[x][1]]=1
+                    maze[turn1[x][0]][turn1[x][1]]=1
 
-    maze=copy.deepcopy(p)
+    maze=copy.deepcopy(maze)
     r,c=rs,cs
     way=[[r,c]]
     i=0
@@ -166,11 +166,11 @@ def make_maze():
     shortest_way=list()
     
     while True :          #找出迷宮最短和最長的解答
-        p[r][c]=2
-        add_d(r,c,p,way,0,i)
+        maze[r][c]=2
+        add_d(r,c,maze,way,0,i)
         if len(way[i][2])==0:
             while len(way[i][2])==0:
-                p[r][c]=0
+                maze[r][c]=0
                 del way[-1]
                 i-=1
                 if i<0:
