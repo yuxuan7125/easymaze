@@ -3,10 +3,10 @@ import copy
 
 R=int(input())      #迷宮大小
 C=int(input())
+maze=list()
 
-def make_maze():
-    maze=list()
-    for i in range(R):      #生成初始迷宮
+def first_maze(maze):      #生成初始迷宮
+    for i in range(R):
         maze.append(list())
         for j in range(C):
             maze[i].append(random.choice([0,1]))
@@ -20,7 +20,9 @@ def make_maze():
                         maze[i][j-1]=1
                     case 4 :
                         maze[i-1][j-1]=1
+    return maze
 
+def start_end(maze):
     '''rs=random.randrange(0,R)        #生成隨機開始點s及結束點e
     cs=random.randrange(0,C)
     re=random.randrange(0,R)
@@ -35,93 +37,93 @@ def make_maze():
     rs=cs=0
     re,ce=R-1,C-1
     maze[rs][cs]=maze[re][ce]=0
+    return maze,rs,cs,re,ce
 
-    def count(a,b,item,maze):        #找出item方位
+
+def count(a,b,item,maze):        #找出item方位
+    length=0
+    if a-1>=0 and maze[a-1][b]==item:
+        length+=1
+    if b-1>=0 and maze[a][b-1]==item:
+        length+=1
+    if a+1<R and maze[a+1][b]==item:
+        length+=1
+    if b+1<C and maze[a][b+1]==item:
+        length+=1
+    return length
+
+def countbomb(a,b,item,maze):        #找出炸開路徑方位
+    dies=list()
+    if a-1>=0 and maze[a-1][b]==1 and count(a-1,b,item,maze)==1:
+        dies.append(1)
+    if b-1>=0 and maze[a][b-1]==1 and count(a,b-1,item,maze)==1:
+        dies.append(2)
+    if a+1<R and maze[a+1][b]==1 and count(a+1,b,item,maze)==1:
+        dies.append(3)
+    if b+1<C and maze[a][b+1]==1 and count(a,b+1,item,maze)==1:
+        dies.append(4)
+    return dies
+
+def add_d(a,b,maze,path,item,i):            #將沒有方向list的加入
+    if len(path[i])==2:
         lis=list()
-        if a-1>=0 and maze[a-1][b]==item:
+        if a-1>=0 and maze[a-1][b]!=1 and maze[a-1][b]<=item:
             lis.append(1)
-        if b-1>=0 and maze[a][b-1]==item:
+        if b-1>=0 and maze[a][b-1]!=1 and maze[a][b-1]<=item:
             lis.append(2)
-        if a+1<R and maze[a+1][b]==item:
+        if a+1<R and maze[a+1][b]!=1 and maze[a+1][b]<=item:
             lis.append(3)
-        if b+1<C and maze[a][b+1]==item:
+        if b+1<C and maze[a][b+1]!=1 and maze[a][b+1]<=item:
             lis.append(4)
-        return lis
+        path[i]["dirs"]=lis
 
-    def countbomb(a,b,item,maze):        #找出炸開路徑方位
-        lis=list()
-        if a-1>=0 and maze[a-1][b]==1 and len(count(a-1,b,item,maze))==1:
-            lis.append(1)
-        if b-1>=0 and maze[a][b-1]==1 and len(count(a,b-1,item,maze))==1:
-            lis.append(2)
-        if a+1<R and maze[a+1][b]==1 and len(count(a+1,b,item,maze))==1:
-            lis.append(3)
-        if b+1<C and maze[a][b+1]==1 and len(count(a,b+1,item,maze))==1:
-            lis.append(4)
-        return lis
-
-    def add_d(a,b,maze,way,item,i):            #將沒有方向list的加入
-        if len(way[i])==2:
-            lis=list()
-            if a-1>=0 and maze[a-1][b]!=1 and maze[a-1][b]<=item:
-                lis.append(1)
-            if b-1>=0 and maze[a][b-1]!=1 and maze[a][b-1]<=item:
-                lis.append(2)
-            if a+1<R and maze[a+1][b]!=1 and maze[a+1][b]<=item:
-                lis.append(3)
-            if b+1<C and maze[a][b+1]!=1 and maze[a][b+1]<=item:
-                lis.append(4)
-            way[i].append(lis)
-
-
+def real_maze(maze):          #形成一個真正有路線的迷宮
     allrc=list()
+    mark=2
     for a in range(R):
         for b in range(C):
-            allrc.append([a,b])
-    mark=2
-
-    for nothing in range(R*C):          #形成一個真正有路線的迷宮
+            if maze[a][b]==0:
+                allrc.append([a,b])
+    for nothing in range(len(allrc)):
         r,c=random.choice(allrc)
         allrc.remove([r,c])
         if maze[r][c]==0:
-            way=[[r,c]]
+            path=[{"r":r, "c":c}]
             i=back=0
-            while True:
+            while len(path)>0:
                 maze[r][c]=mark
-                add_d(r,c,maze,way,mark-1,i)
-                if len(way[i][2])==0:
-                    while len(way[i][2])==0:
+                add_d(r,c,maze,path,mark-1,i)
+                if len(path[i]["dirs"])==0:
+                    while len(path[i]["dirs"])==0:
                         if i==back:
-                            bomb=random.randrange(0,len(way))
-                            while len(countbomb(way[bomb][0],way[bomb][1],mark,maze))==0:
-                                del way[bomb]
-                                if len(way)==0:
+                            bomb=random.randrange(0,len(path))
+                            while len(countbomb(path[bomb]["r"],path[bomb]["c"],mark,maze))==0:
+                                del path[bomb]
+                                if len(path)==0:
                                     break
-                                bomb=random.randrange(0,len(way))
-                            if len(way)==0:
+                                bomb=random.randrange(0,len(path))
+                            if len(path)==0:
                                 break
-                            match random.choice(countbomb(way[bomb][0],way[bomb][1],mark,maze)):
+                            match random.choice(countbomb(path[bomb]["r"],path[bomb]["c"],mark,maze)):
                                 case 1:
-                                    r,c=way[bomb][0]-1,way[bomb][1]
+                                    r,c=path[bomb]["r"]-1,path[bomb]["c"]
                                 case 2:
-                                    r,c=way[bomb][0],way[bomb][1]-1
+                                    r,c=path[bomb]["r"],path[bomb]["c"]-1
                                 case 3:
-                                    r,c=way[bomb][0]+1,way[bomb][1]
+                                    r,c=path[bomb]["r"]+1,path[bomb]["c"]
                                 case 4:
-                                    r,c=way[bomb][0],way[bomb][1]+1
+                                    r,c=path[bomb]["r"],path[bomb]["c"]+1
                             maze[r][c]=0
-                            way.append([r,c])
-                            i=len(way)-1
+                            path.append({"r":r, "c":c})
+                            i=len(path)-1
                             back=i
-                            add_d(r,c,maze,way,mark-1,i)
+                            add_d(r,c,maze,path,mark-1,i)
                             break
                         i-=1
-                        r,c=way[i][0],way[i][1]
-                    if len(way)==0:
-                        break
+                        r,c=path[i]["r"],path[i]["c"]
                     continue
-                d=random.choice(way[i][2])
-                way[i][2].remove(d)
+                d=random.choice(path[i]["dirs"])
+                path[i]["dirs"].remove(d)
                 match d:
                     case 1:
                         r-=1
@@ -132,54 +134,52 @@ def make_maze():
                     case 4:
                         c+=1
                 i+=1
-                way.insert(i,[r,c])
+                path.insert(i,{"r":r, "c":c})
             mark+=1
-
     for x in range(R):
         for y in range(C):
             if maze[x][y]>1:
                 maze[x][y]=0
+    return maze
 
-    for i in range(R):      #優化迷宮
+def better_maze(maze):        #優化迷宮
+    for i in range(R):
         for j in range(C):
-            if maze[i][j]=='v':
-                maze[i][j]=0
             if i>0 and j>0 and maze[i][j]==0 and maze[i-1][j]==0 and maze[i][j-1]==0 and maze[i-1][j-1]==0 :
                 turn1=list()
-                if len(count(i,j,0,maze))==2:
+                if count(i,j,0,maze)==2:
                     turn1.append([i,j])
-                if len(count(i-1,j,0,maze))==2:
+                if count(i-1,j,0,maze)==2:
                     turn1.append([i-1,j])
-                if len(count(i,j-1,0,maze))==2:
+                if count(i,j-1,0,maze)==2:
                     turn1.append([i,j-1])
-                if len(count(i-1,j-1,0,maze))==2:
+                if count(i-1,j-1,0,maze)==2:
                     turn1.append([i-1,j-1])
                 if len(turn1)>=1:
                     x=random.randrange(0,len(turn1))
                     maze[turn1[x][0]][turn1[x][1]]=1
+    return maze
 
-    maze=copy.deepcopy(maze)
+def answer_shortest_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解答
     r,c=rs,cs
-    way=[[r,c]]
+    path=[{"r":r, "c":c}]
     i=0
     shortest=R*C
-    shortest_way=list()
-    
-    while True :          #找出迷宮最短和最長的解答
+    shortest_path=list()
+
+    while i>=0 :
         maze[r][c]=2
-        add_d(r,c,maze,way,0,i)
-        if len(way[i][2])==0:
-            while len(way[i][2])==0:
+        add_d(r,c,maze,path,0,i)
+        if len(path[i]["dirs"])==0:
+            while len(path[i]["dirs"])==0:
                 maze[r][c]=0
-                del way[-1]
+                del path[-1]
                 i-=1
                 if i<0:
                     break
-                r,c=way[i][0],way[i][1]
-            if i<0:
-                break
+                r,c=path[i]["r"],path[i]["c"]
             continue
-        match way[i][2].pop():
+        match path[i]["dirs"].pop():
             case 1:
                 r-=1
             case 2:
@@ -189,24 +189,29 @@ def make_maze():
             case 4:
                 c+=1
         if r==re and c==ce:
-            if len(way)<shortest:
-                shortest=len(way)
-                shortest_way=copy.deepcopy(way)
-            r,c=way[i][0],way[i][1]
+            print(666)
+            if len(path)<shortest:
+                shortest=len(path)
+                shortest_path=copy.deepcopy(path)
+            r,c=path[i]["r"],path[i]["c"]
             continue
         i+=1
-        way.insert(i,[r,c])
+        path.insert(i,{"r":r, "c":c})
 
     maze[rs][cs]='s'
     maze[re][ce]='e'
     answer_shortest=copy.deepcopy(maze)
-    for rc in shortest_way[1:]:
-        answer_shortest[rc[0]][rc[1]]='v'
-    return shortest,answer_shortest,maze,rs,re,cs,ce
+    for rc in shortest_path[1:]:
+        answer_shortest[rc["r"]][rc["c"]]='v'
+    return maze,shortest,answer_shortest
 
-shortest,answer_shortest,maze,rs,re,cs,ce=make_maze()
+maze=first_maze(maze)
+maze,rs,cs,re,ce=start_end(maze)
+maze=real_maze(maze)
+maze=better_maze(maze)
+maze,shortest,answer_shortest=answer_shortest_maze(maze,rs,cs,re,ce)
 while shortest<(abs(rs-re)+abs(cs-ce))*1:           #避免迷宮太容易
-    shortest,answer_shortest,maze,rs,re,cs,ce=make_maze()
+    maze,shortest,answer_shortest=answer_shortest_maze(maze,rs,cs,re,ce)
 print("maze:")
 for row in maze:
     print(*row)
