@@ -3,9 +3,9 @@ import copy
 
 R=int(input())      #迷宮大小
 C=int(input())
-maze=list()
 
-def first_maze(maze):      #生成初始迷宮
+def make_first_maze():      #生成隨機1,0迷宮
+    maze=list()
     for i in range(R):
         maze.append(list())
         for j in range(C):
@@ -22,7 +22,7 @@ def first_maze(maze):      #生成初始迷宮
                         maze[i-1][j-1]=1
     return maze
 
-def start_end(maze):
+def make_start_end(maze):
     '''rs=random.randrange(0,R)        #生成隨機開始點s及結束點e
     cs=random.randrange(0,C)
     re=random.randrange(0,R)
@@ -52,7 +52,7 @@ def count(a,b,item,maze):        #找出item方位
         length+=1
     return length
 
-def countbomb(a,b,item,maze):        #找出炸開路徑方位
+def countbomb(a,b,item,maze):        #找出可炸開路的方位
     dies=list()
     if a-1>=0 and maze[a-1][b]==1 and count(a-1,b,item,maze)==1:
         dies.append(1)
@@ -64,7 +64,7 @@ def countbomb(a,b,item,maze):        #找出炸開路徑方位
         dies.append(4)
     return dies
 
-def add_d(a,b,maze,path,item,i):            #將沒有方向list的加入
+def add_d(a,b,maze,path,item,i):            #將沒有dirs的加入
     if len(path[i])==2:
         lis=list()
         if a-1>=0 and maze[a-1][b]!=1 and maze[a-1][b]<=item:
@@ -77,7 +77,7 @@ def add_d(a,b,maze,path,item,i):            #將沒有方向list的加入
             lis.append(4)
         path[i]["dirs"]=lis
 
-def real_maze(maze):          #形成一個真正有路線的迷宮
+def make_have_road_maze(maze):          #形成一個真正有路線的迷宮
     allrc=list()
     mark=2
     for a in range(R):
@@ -95,7 +95,7 @@ def real_maze(maze):          #形成一個真正有路線的迷宮
                 add_d(r,c,maze,path,mark-1,i)
                 if len(path[i]["dirs"])==0:
                     while len(path[i]["dirs"])==0:
-                        if i==back:
+                        if i==back:         #開路
                             bomb=random.randrange(0,len(path))
                             while len(countbomb(path[bomb]["r"],path[bomb]["c"],mark,maze))==0:
                                 del path[bomb]
@@ -142,7 +142,7 @@ def real_maze(maze):          #形成一個真正有路線的迷宮
                 maze[x][y]=0
     return maze
 
-def better_maze(maze):        #優化迷宮
+def make_less_blank_maze(maze):        #將多餘的路變成牆
     for i in range(R):
         for j in range(C):
             if i>0 and j>0 and maze[i][j]==0 and maze[i-1][j]==0 and maze[i][j-1]==0 and maze[i-1][j-1]==0 :
@@ -160,13 +160,12 @@ def better_maze(maze):        #優化迷宮
                     maze[turn1[x][0]][turn1[x][1]]=1
     return maze
 
-def answer_shortest_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解答
+def make_shortest_answer_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解答
     r,c=rs,cs
     path=[{"r":r, "c":c}]
     i=0
     shortest=R*C
     shortest_path=list()
-
     while i>=0 :
         maze[r][c]=2
         add_d(r,c,maze,path,0,i)
@@ -189,7 +188,6 @@ def answer_shortest_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解�
             case 4:
                 c+=1
         if r==re and c==ce:
-            print(666)
             if len(path)<shortest:
                 shortest=len(path)
                 shortest_path=copy.deepcopy(path)
@@ -197,7 +195,6 @@ def answer_shortest_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解�
             continue
         i+=1
         path.insert(i,{"r":r, "c":c})
-
     maze[rs][cs]='s'
     maze[re][ce]='e'
     answer_shortest=copy.deepcopy(maze)
@@ -205,17 +202,39 @@ def answer_shortest_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解�
         answer_shortest[rc["r"]][rc["c"]]='v'
     return maze,shortest,answer_shortest
 
-maze=first_maze(maze)
-maze,rs,cs,re,ce=start_end(maze)
-maze=real_maze(maze)
-maze=better_maze(maze)
-maze,shortest,answer_shortest=answer_shortest_maze(maze,rs,cs,re,ce)
-while shortest<(abs(rs-re)+abs(cs-ce))*1:           #避免迷宮太容易
-    maze,shortest,answer_shortest=answer_shortest_maze(maze,rs,cs,re,ce)
+def make_color_maze(maze):          #將迷宮上色
+    color={
+        "0":"\033[42m   \033[0m",#路染綠色
+        "1":"\033[40m   \033[0m",#牆染黑色
+        "s":"\033[1;42m s \033[0m",
+        "e":"\033[1;42m e \033[0m",
+        "v":"\033[42m v \033[0m"
+    }
+    for a in range(R):
+        for b in range(C):
+            if maze[a][b]==0:
+                maze[a][b]=color["0"]
+            elif maze[a][b]==1:
+                maze[a][b]=color["1"]
+            elif maze[a][b]=='s':
+                maze[a][b]=color["s"]
+            elif maze[a][b]=='e':
+                maze[a][b]=color["e"]
+            else :
+                maze[a][b]=color["v"]
+    return maze
+
+maze=make_first_maze()
+maze,rs,cs,re,ce=make_start_end(maze)
+have_road_maze=make_have_road_maze(maze)
+less_blank_maze=make_less_blank_maze(have_road_maze)
+final_maze,shortest,shortest_answer_maze=make_shortest_answer_maze(less_blank_maze,rs,cs,re,ce)
+final_maze=make_color_maze(final_maze)
+shortest_answer_maze=make_color_maze(shortest_answer_maze)
 print("maze:")
-for row in maze:
-    print(*row)
+for row in final_maze:
+    print(*row,sep="")
 print("answer(shortest):")
-for row in answer_shortest:
-    print(*row)
+for row in shortest_answer_maze:
+    print(*row,sep="")
 print(shortest)
