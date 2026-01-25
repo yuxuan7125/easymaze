@@ -80,6 +80,7 @@ def add_d(a,b,maze,path,item,i):            #將沒有dirs的加入
 def make_have_road_maze(maze):          #形成一個真正有路線的迷宮
     allrc=list()
     mark=2
+    max=0               #
     for a in range(R):
         for b in range(C):
             if maze[a][b]==0:
@@ -91,6 +92,7 @@ def make_have_road_maze(maze):          #形成一個真正有路線的迷宮
             path=[{"r":r, "c":c}]
             i=back=0
             while len(path)>0:
+                max+=1              #
                 maze[r][c]=mark
                 add_d(r,c,maze,path,mark-1,i)
                 if len(path[i]["dirs"])==0:
@@ -140,6 +142,65 @@ def make_have_road_maze(maze):          #形成一個真正有路線的迷宮
         for y in range(C):
             if maze[x][y]>1:
                 maze[x][y]=0
+    print(max)          #
+    return maze
+
+def make_have_road_maze_bfs(maze):          #形成一個真正有路線的迷宮
+    allrc=list()
+    mark=2
+    max=0               #
+    for a in range(R):
+        for b in range(C):
+            if maze[a][b]==0:
+                allrc.append([a,b])
+    for nothing in range(len(allrc)):
+        r,c=random.choice(allrc)
+        allrc.remove([r,c])
+        path=[{"r":r, "c":c}]
+        i=0
+        if maze[r][c]==0:
+            while True :
+                max+=1              #
+                maze[r][c]=mark
+                add_d(r,c,maze,path,mark-1,i)
+                if 1 in path[i]["dirs"]:
+                    path.append({"r":r-1, "c":c})
+                if 2 in path[i]["dirs"]:
+                    path.append({"r":r, "c":c-1})
+                if 3 in path[i]["dirs"]:
+                    path.append({"r":r+1, "c":c})
+                if 4 in path[i]["dirs"]:
+                    path.append({"r":r, "c":c+1})
+                i+=1
+                if i==len(path):
+                    bomb=random.randrange(0,len(path))
+                    while len(countbomb(path[bomb]["r"],path[bomb]["c"],mark,maze))==0:
+                        del path[bomb]
+                        if len(path)==0:
+                            break
+                        bomb=random.randrange(0,len(path))
+                    if len(path)==0:
+                        break
+                    match random.choice(countbomb(path[bomb]["r"],path[bomb]["c"],mark,maze)):
+                        case 1:
+                            r,c=path[bomb]["r"]-1,path[bomb]["c"]
+                        case 2:
+                            r,c=path[bomb]["r"],path[bomb]["c"]-1
+                        case 3:
+                            r,c=path[bomb]["r"]+1,path[bomb]["c"]
+                        case 4:
+                            r,c=path[bomb]["r"],path[bomb]["c"]+1
+                    maze[r][c]=0
+                    path.append({"r":r, "c":c})
+                    i=len(path)-1
+                    add_d(r,c,maze,path,mark-1,i)
+                r,c=path[i]["r"],path[i]["c"]
+            mark+=1
+    for x in range(R):
+        for y in range(C):
+            if maze[x][y]>1:
+                maze[x][y]=0
+    print(max)          #
     return maze
 
 def make_less_blank_maze(maze):        #將多餘的路變成牆
@@ -215,6 +276,7 @@ def make_color_maze(maze):          #將迷宮上色
 maze=make_first_maze()
 maze,rs,cs,re,ce=make_start_end(maze)
 have_road_maze=make_have_road_maze(maze)
+have_road_maze=make_have_road_maze_bfs(maze)
 less_blank_maze=make_less_blank_maze(have_road_maze)
 final_maze,shortest,shortest_answer_maze=make_shortest_answer_maze(less_blank_maze,rs,cs,re,ce)
 final_maze=make_color_maze(final_maze)
