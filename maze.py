@@ -65,7 +65,7 @@ def countbomb(a,b,item,maze):        #找出可炸開路的方位
     return dies
 
 def add_d(a,b,maze,path,item,i):            #將沒有dirs的加入
-    if len(path[i])==2:
+    if "dirs" not in path[i]:
         lis=list()
         if a-1>=0 and maze[a-1][b]!=1 and maze[a-1][b]<=item:
             lis.append(1)
@@ -147,13 +147,13 @@ def make_less_blank_maze(maze):        #將多餘的路變成牆
         for j in range(C):
             if i>0 and j>0 and maze[i][j]==0 and maze[i-1][j]==0 and maze[i][j-1]==0 and maze[i-1][j-1]==0 :
                 turn1=list()
-                if count(i,j,0,maze)==2:
+                if count(i,j,0,maze)==2 and i!=re and j!=ce:
                     turn1.append([i,j])
                 if count(i-1,j,0,maze)==2:
                     turn1.append([i-1,j])
                 if count(i,j-1,0,maze)==2:
                     turn1.append([i,j-1])
-                if count(i-1,j-1,0,maze)==2:
+                if count(i-1,j-1,0,maze)==2 and i!=rs and j!=cs:
                     turn1.append([i-1,j-1])
                 if len(turn1)>=1:
                     x=random.randrange(0,len(turn1))
@@ -162,66 +162,54 @@ def make_less_blank_maze(maze):        #將多餘的路變成牆
 
 def make_shortest_answer_maze(maze,rs,cs,re,ce):          #找出迷宮最短的解答
     r,c=rs,cs
-    path=[{"r":r, "c":c}]
+    path=[{"r":r, "c":c, "dist":0}]
     i=0
-    shortest=R*C
-    shortest_path=list()
-    while i>=0 :
+    dist=1
+    while r!=re or c!=ce :
         maze[r][c]=2
         add_d(r,c,maze,path,0,i)
-        if len(path[i]["dirs"])==0:
-            while len(path[i]["dirs"])==0:
-                maze[r][c]=0
-                del path[-1]
-                i-=1
-                if i<0:
-                    break
-                r,c=path[i]["r"],path[i]["c"]
-            continue
-        match path[i]["dirs"].pop():
-            case 1:
-                r-=1
-            case 2:
-                c-=1
-            case 3:
-                r+=1
-            case 4:
-                c+=1
-        if r==re and c==ce:
-            if len(path)<shortest:
-                shortest=len(path)
-                shortest_path=copy.deepcopy(path)
-            r,c=path[i]["r"],path[i]["c"]
-            continue
+        if 1 in path[i]["dirs"]:
+            path.append({"r":r-1, "c":c, "dist":dist})
+        if 2 in path[i]["dirs"]:
+            path.append({"r":r, "c":c-1, "dist":dist})
+        if 3 in path[i]["dirs"]:
+            path.append({"r":r+1, "c":c, "dist":dist})
+        if 4 in path[i]["dirs"]:
+            path.append({"r":r, "c":c+1, "dist":dist})
         i+=1
-        path.insert(i,{"r":r, "c":c})
+        r,c,dist=path[i]["r"],path[i]["c"],path[i]["dist"]+1
+    shortest_path=list()
+    r,c=re,ce
+    for k in range(len(path)-1,-1,-1):
+        if path[k]["r"]==re and path[k]["c"]==ce:
+            shortest=path[k]["dist"]
+            dist-=2
+        if path[k]["dist"]==dist and abs(r-path[k]["r"])+abs(c-path[k]["c"])==1:
+            shortest_path.append([path[k]["r"],path[k]["c"]])
+            dist-=1
+            r,c=path[k]["r"],path[k]["c"]
+    for a in range(R):
+        for b in range(C):
+            if maze[a][b]==2:
+                maze[a][b]=0
     maze[rs][cs]='s'
     maze[re][ce]='e'
-    answer_shortest=copy.deepcopy(maze)
-    for rc in shortest_path[1:]:
-        answer_shortest[rc["r"]][rc["c"]]='v'
-    return maze,shortest,answer_shortest
+    shortest_answer_maze=copy.deepcopy(maze)
+    for a,b in shortest_path[:len(shortest_path)-1]:
+        shortest_answer_maze[a][b]='v'
+    return maze,shortest,shortest_answer_maze
 
 def make_color_maze(maze):          #將迷宮上色
     color={
-        "0":"\033[42m   \033[0m",#路染綠色
-        "1":"\033[40m   \033[0m",#牆染黑色
-        "s":"\033[1;42m s \033[0m",
-        "e":"\033[1;42m e \033[0m",
-        "v":"\033[42m v \033[0m"
+        0:"\033[42m   \033[0m",#路染綠色
+        1:"\033[40m   \033[0m",#牆染黑色
+        's':"\033[1;42m s \033[0m",
+        'e':"\033[1;42m e \033[0m",
+        'v':"\033[42m v \033[0m"
     }
     for a in range(R):
         for b in range(C):
-            if maze[a][b]==0:
-                maze[a][b]=color["0"]
-            elif maze[a][b]==1:
-                maze[a][b]=color["1"]
-            elif maze[a][b]=='s':
-                maze[a][b]=color["s"]
-            elif maze[a][b]=='e':
-                maze[a][b]=color["e"]
-            else :
-                maze[a][b]=color["v"]
+            maze[a][b]=color[maze[a][b]]
     return maze
 
 maze=make_first_maze()
